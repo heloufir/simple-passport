@@ -24,6 +24,7 @@ The package depend on the **laravel/passport** package, as mentionned below:
     php artisan vendor:publish
 
 You will be asked to choose what **tag** you want to publish (see the image below)
+
 ![Publish heloufir/simple-passport package](https://lh3.googleusercontent.com/-gmOs-xKPf9I/XG65d1UKb0I/AAAAAAAAEpk/SUOSSF-Mj7AwydQWc8HkvIIIluGg5pXmwCLcBGAs/s0/Publish+simple-passport.png "Publish simple-passport.png")
 
 Next you just need to choose the tag number to publish and tap **Enter**.
