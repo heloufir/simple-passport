@@ -1,25 +1,10 @@
-# simple-passport
-Simple passport, is a complete implementation of laravel/passport package, containing authentication, forgot passwort, recovery password, ... and all what you need to start your application that needs a complete authentication system
-
-----------
-
-**Installation**
-----------------
-
-First of all, you need to install the package into your laravel project, by running the below command:
-
-    composer require heloufir/simple-passport
-
-The package depend on the **laravel/passport** package, as mentionned below:
-
-| Dependencies  | Version |
-| ------------- | ------- |
-| laravel/passport  | ^7.2 |
-
-**Configuration**
------------------
-
 1/ After installing the package, you need to publish it, by running the command:
+
+To do it, simply execute the following command 
+
+    php artisan vendor:publish --provider=Heloufir\SimplePassport\SimplePassportServiceProvider
+
+Or follow the steps below:
 
     php artisan vendor:publish
 
@@ -70,21 +55,21 @@ Next, you should run the `passport:install` command. This command will create th
 
 After running this command, add the **Laravel\Passport\HasApiTokens** trait to your **YOUR_NAMESPACE\User** model. This trait will provide a few helper methods to your model which allow you to inspect the authenticated user's token and scopes:
 
-    <?php
+```php
+<?php
+
+namespace App;
     
-    namespace App;
+use Laravel\Passport\HasApiTokens;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
     
-    use Laravel\Passport\HasApiTokens;
-    use Illuminate\Notifications\Notifiable;
-    use Illuminate\Foundation\Auth\User as Authenticatable;
-    
-    class User extends Authenticatable
-    {
-        use HasApiTokens, Notifiable;
-    }
+class User extends Authenticatable
+{
+    use HasApiTokens, Notifiable;
+}
+```
 
 It's done for the **laravel/passport** configuration, the rest of the configuration is done in the **heloufir/simple-passport** side.
 
 > So from here you are ready to use **laravel/passport** and **heloufir/simple-passport** packages.
-
-Please read the package [wiki](https://github.com/heloufir/simple-passport/wiki) for more information about how it works!
