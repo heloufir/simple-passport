@@ -86,3 +86,5 @@ After running this command, add the **Laravel\Passport\HasApiTokens** trait to y
 It's done for the **laravel/passport** configuration, the rest of the configuration is done in the **heloufir/simple-passport** side.
 
 > So from here you are ready to use **laravel/passport** and **heloufir/simple-passport** packages.
+
+Please read the package [wiki](https://github.com/heloufir/simple-passport/wiki) for more information about how it works!
