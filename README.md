@@ -2,6 +2,8 @@
 
     composer require heloufir/simple-passport
 
+# Configuration
+
 1/ After installing the package, you need to publish it, by running the command:
 
 To do it, simply execute the following command 
