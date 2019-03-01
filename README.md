@@ -76,6 +76,23 @@ class User extends Authenticatable
 }
 ```
 
+> Don't forget to update the guards in your **auth.php** configuration file for the `api` to **passport**
+
+```php
+'guards' => [
+        'web' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+
+        'api' => [
+            'driver' => 'passport', // <- Here
+            'provider' => 'users',
+        ],
+    ],
+```
+
+
 It's done for the **laravel/passport** configuration, the rest of the configuration is done in the **heloufir/simple-passport** side.
 
 > So from here you are ready to use **laravel/passport** and **heloufir/simple-passport** packages.
