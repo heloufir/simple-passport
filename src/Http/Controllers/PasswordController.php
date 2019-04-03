@@ -3,7 +3,6 @@
 namespace Heloufir\SimplePassport\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Heloufir\SimplePassport\Rules\PasswordTokenExists;
 use Heloufir\SimplePassport\Rules\UserExists;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,6 +26,7 @@ class PasswordController extends Controller
     public function forgot(Request $request): JsonResponse
     {
         $field = app(config('auth.providers.users.model'))->simplePassport ?: 'email';
+
         $rules = [
             $field => [
                 'required',
@@ -47,6 +47,13 @@ class PasswordController extends Controller
         return response()->json(['mail_sent' => true, 'errors' => []], 200);
     }
 
+    /**
+     * Recover the password
+     *
+     * @param Request $request
+     * @param string $token
+     * @return JsonResponse
+     */
     public function recover(Request $request, string $token): JsonResponse
     {
         $rules = [
