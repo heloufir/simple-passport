@@ -5,6 +5,10 @@
   "require": {
     "laravel/passport": "^7.2"
   },
+  "require-dev": {
+    "fzaninotto/faker": "~1.4",
+    "phpunit/phpunit": "~4.0"
+  },
   "license": "MIT",
   "authors": [
     {
