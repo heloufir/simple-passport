@@ -1,9 +1,13 @@
 {
   "name": "heloufir/simple-passport",
-  "description": "Simple passport, is a complete implementation of laravel/passport package, containing authentication, forgot passwort, recovery password, ... and all what you need to start your application that needs a complete authentication system",
+  "description": "Simple passport, is a complete implementation of laravel/passport package, containing authentication, forgot password, recovery password, ... and all what you need to start your application that needs a complete authentication system",
   "type": "package",
   "require": {
     "laravel/passport": "^7.2"
+  },
+  "require-dev": {
+    "fzaninotto/faker": "~1.4",
+    "phpunit/phpunit": "~4.0"
   },
   "license": "MIT",
   "authors": [

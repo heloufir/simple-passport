@@ -6,6 +6,12 @@ use Illuminate\Contracts\Validation\Rule;
 
 class UserExists implements Rule
 {
+    protected $model;
+
+    public function __construct()
+    {
+        $this->model = config('simple-passport.model');
+    }
 
     /**
      * Determine if the validation rule passes.
@@ -16,10 +22,7 @@ class UserExists implements Rule
      */
     public function passes($attribute, $value)
     {
-        return config('auth.providers.users.model')::where(
-            app(config('auth.providers.users.model'))->simplePassport ?: 'email',
-            $value
-        )->count() != 0;
+        return $this->model::where($this->model::getEmailField(), '=', $value)->count() !== 0;
     }
 
     /**

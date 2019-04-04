@@ -3,8 +3,7 @@
 namespace Heloufir\SimplePassport\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Heloufir\SimplePassport\Rules\PasswordTokenExists;
-use Heloufir\SimplePassport\Rules\UserExists;
+use Heloufir\SimplePassport\Http\Requests\ResetPasswordRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -17,29 +16,18 @@ class PasswordController extends Controller
     /**
      * Forgot password method
      *
-     * @param Request $request
+     * @param ResetPasswordRequest $request
      *      The request object, containing the user's form data
      *
      * @return JsonResponse
      *
      * @author EL OUFIR Hatim <eloufirhatim@gmail.com>
      */
-    public function forgot(Request $request): JsonResponse
+    public function forgot(ResetPasswordRequest $request): JsonResponse
     {
-        $field = app(config('auth.providers.users.model'))->simplePassport ?: 'email';
-        $rules = [
-            $field => [
-                'required',
-                new UserExists
-            ]
-        ];
-        if ($field === 'email') {
-            array_push($rules[$field], 'email');
-        }
-        $validator = Validator::make($request->all(), $rules);
-        if ($validator->fails()) {
-            return response()->json(['mail_sent' => false, 'errors' => collect($validator->getMessageBag())->flatten()->toArray()], 403);
-        }
+        dd(
+            'passed'
+        );
         $user = config('auth.providers.users.model')::where($field, $request->get($field))->first();
         $user->password_token = Str::random(100);
         $user->save();
@@ -47,6 +35,13 @@ class PasswordController extends Controller
         return response()->json(['mail_sent' => true, 'errors' => []], 200);
     }
 
+    /**
+     * Recover the password
+     *
+     * @param Request $request
+     * @param string $token
+     * @return JsonResponse
+     */
     public function recover(Request $request, string $token): JsonResponse
     {
         $rules = [
