@@ -25,9 +25,7 @@ class PasswordController extends Controller
      */
     public function forgot(ResetPasswordRequest $request): JsonResponse
     {
-        dd(
-            'passed'
-        );
+        $field = app(config('auth.providers.users.model'))->simplePassport ?: 'email';
         $user = config('auth.providers.users.model')::where($field, $request->get($field))->first();
         $user->password_token = Str::random(100);
         $user->save();
