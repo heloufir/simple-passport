@@ -8,27 +8,20 @@ use Heloufir\SimplePassport\Jobs\SendRecoveredPasswordJob;
 use Heloufir\SimplePassport\Jobs\SendResetPasswordTokenJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Mail;
 
 class PasswordController extends Controller
 {
-
     /**
      * Forgot password method
      *
      * @param ResetPasswordRequest $request
-     *      The request object, containing the user's form data
-     *
      * @return JsonResponse
-     *
-     * @author EL OUFIR Hatim <eloufirhatim@gmail.com>
-     * @modified By INANI El Houssain <inanielhoussain@gmail.com>
      */
     public function forgot(ResetPasswordRequest $request): JsonResponse
     {
-        $user = $request->user_asked;
+        $user = $this->getRelatedUser($request);
 
-        $user->generateResetPassword();
+        $user->simpleToken()->generateResetPassword();
 
         // Can be queued
         SendResetPasswordTokenJob::dispatch(
@@ -47,7 +40,7 @@ class PasswordController extends Controller
      */
     public function recover(RecoverPasswordRequest $request, string $token): JsonResponse
     {
-        $user = $request->user_asked;
+        $user = $this->getRelatedUser($request);;
 
         if(! $user->simpleToken($token)->belongs()){
             return response()->json([
@@ -59,26 +52,22 @@ class PasswordController extends Controller
         $user->setNewPassword($request->get('password'))
              ->forgotToken();
 
+        // Can be queued
         SendRecoveredPasswordJob::dispatch(
             $user
         );
         return response()->json(['password_recovered' => true, 'errors' => []], 200);
     }
 
+
     /**
-     * Send the recovered password email to the user
+     * Get the related user
      *
-     * @param object $user
-     *      The User model object
-     *
-     * @author EL OUFIR Hatim <eloufirhatim@gmail.com>
+     * @param $request
+     * @return mixed
      */
-    private function sendRecoverEmail($user)
+    protected function getRelatedUser($request)
     {
-        Mail::send('simple-passport.recover-password', ['user' => $user], function ($mail) use ($user) {
-            $mail->from(config('simple-passport.mail_from'), config('simple-passport.mail_from_name'));
-            $mail->to($user->email);
-            $mail->subject(trans('simple-passport::recover-password.mail_subject'));
-        });
+        return $request->user_asked;
     }
 }

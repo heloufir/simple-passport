@@ -10,6 +10,11 @@ use Illuminate\Support\Str;
 trait CanResetPassword
 {
 
+    /**
+     * Token instance
+     *
+     * @return mixed
+     */
     public function simpleTokens()
     {
         return $this->hasOne(Token::class);
@@ -36,15 +41,11 @@ trait CanResetPassword
         return 'password';
     }
 
-    public function generateResetPassword()
-    {
-        return $this->simpleTokens()->save(
-            new Token([
-                'token' => 'random'
-            ])
-        );
-    }
-
+    /**
+     * Get the generated token
+     *
+     * @return mixed
+     */
     public function getResetPasswordToken()
     {
         return $this->simpleTokens->token;
@@ -65,6 +66,10 @@ trait CanResetPassword
         return $this;
     }
 
+    /**
+     * Delete the token after setting up the new password
+     *
+     */
     public function forgotToken()
     {
         $this->simpleTokens()->delete();
@@ -76,8 +81,12 @@ trait CanResetPassword
      * @param $token
      * @return TokenHandler
      */
-    public function simpleToken($token)
+    public function simpleToken($token = null)
     {
+        if(is_null($token)){
+            return new TokenHandler(Str::random(40), $this);
+        }
+
         return new TokenHandler($token, $this);
     }
 }
