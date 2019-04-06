@@ -4,6 +4,7 @@ namespace Heloufir\SimplePassport\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Heloufir\SimplePassport\Http\Requests\ResetPasswordRequest;
+use Heloufir\SimplePassport\Jobs\SendResetPasswordTokenJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -22,16 +23,19 @@ class PasswordController extends Controller
      * @return JsonResponse
      *
      * @author EL OUFIR Hatim <eloufirhatim@gmail.com>
+     * @modified By INANI El Houssain <inanielhoussain@gmail.com>
      */
     public function forgot(ResetPasswordRequest $request): JsonResponse
     {
-        dd(
-            'passed'
+        $user = $request->user_asked;
+
+        $user->generateResetPassword();
+
+        // Can be queued
+        SendResetPasswordTokenJob::dispatch(
+            $user
         );
-        $user = config('auth.providers.users.model')::where($field, $request->get($field))->first();
-        $user->password_token = Str::random(100);
-        $user->save();
-        $this->sendForgotEmail($user);
+
         return response()->json(['mail_sent' => true, 'errors' => []], 200);
     }
 
@@ -63,23 +67,6 @@ class PasswordController extends Controller
     }
 
     /**
-     * Send the forgotten password email to the user
-     *
-     * @param object $user
-     *      The User model object
-     *
-     * @author EL OUFIR Hatim <eloufirhatim@gmail.com>
-     */
-    private function sendForgotEmail($user)
-    {
-        Mail::send('simple-passport.forgot-password', ['user' => $user], function ($mail) use ($user) {
-            $mail->from(config('simple-passport.mail_from'), config('simple-passport.mail_from_name'));
-            $mail->to($user->email);
-            $mail->subject(trans('simple-passport::forgot-password.mail_subject'));
-        });
-    }
-
-    /**
      * Send the recovered password email to the user
      *
      * @param object $user
@@ -95,5 +82,4 @@ class PasswordController extends Controller
             $mail->subject(trans('simple-passport::recover-password.mail_subject'));
         });
     }
-
 }
