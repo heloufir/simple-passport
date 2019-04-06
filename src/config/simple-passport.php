@@ -52,5 +52,16 @@ return [
     |
     */
 
-    'model' => \App\User::class
+    'model' => \App\User::class,
+
+    /*
+    |--------------------------------------------------------------------------
+    | after_seconds
+    |--------------------------------------------------------------------------
+    |
+    | How many seconds before dispatch the jobs to send mails
+    |
+    */
+
+    'after_seconds' => 10,
 ];

@@ -24,8 +24,9 @@ class PasswordController extends Controller
         $user->simpleToken()->generateResetPassword();
 
         // Can be queued
-        SendResetPasswordTokenJob::dispatch(
-            $user
+
+        $this->dispatchJobWithDelay(
+            SendResetPasswordTokenJob::class, $user
         );
 
         return response()->json(['mail_sent' => true, 'errors' => []], 200);
@@ -53,9 +54,11 @@ class PasswordController extends Controller
              ->forgotToken();
 
         // Can be queued
-        SendRecoveredPasswordJob::dispatch(
-            $user
+
+        $this->dispatchJobWithDelay(
+            SendRecoveredPasswordJob::class, $user
         );
+
         return response()->json(['password_recovered' => true, 'errors' => []], 200);
     }
 
@@ -69,5 +72,19 @@ class PasswordController extends Controller
     protected function getRelatedUser($request)
     {
         return $request->user_asked;
+    }
+
+    /**
+     * @param $class
+     * @param $user
+     * @return mixed
+     */
+    protected function dispatchJobWithDelay($class, $user)
+    {
+        return $class::dispatch(
+            $user
+        )->delay(
+            now()->addSecond(config('simple-passport.after_seconds'))
+        );
     }
 }

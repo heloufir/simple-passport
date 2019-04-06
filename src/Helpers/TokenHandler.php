@@ -26,7 +26,7 @@ class TokenHandler
      */
     public function belongs()
     {
-        return $this->user->simpleTokens->token === $this->token;
+        return optional($this->user->simpleTokens)->token === $this->token;
     }
 
     /**
