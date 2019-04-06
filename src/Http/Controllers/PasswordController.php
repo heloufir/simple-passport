@@ -2,14 +2,13 @@
 
 namespace Heloufir\SimplePassport\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use Heloufir\SimplePassport\Http\Requests\RecoverPasswordRequest;
 use Heloufir\SimplePassport\Http\Requests\ResetPasswordRequest;
+use Heloufir\SimplePassport\Jobs\SendRecoveredPasswordJob;
 use Heloufir\SimplePassport\Jobs\SendResetPasswordTokenJob;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 class PasswordController extends Controller
 {
@@ -42,27 +41,27 @@ class PasswordController extends Controller
     /**
      * Recover the password
      *
-     * @param Request $request
+     * @param RecoverPasswordRequest $request
      * @param string $token
      * @return JsonResponse
      */
-    public function recover(Request $request, string $token): JsonResponse
+    public function recover(RecoverPasswordRequest $request, string $token): JsonResponse
     {
-        $rules = [
-            'password' => 'required|confirmed|min:6'
-        ];
-        $validator = Validator::make($request->all(), $rules);
-        if ($validator->fails()) {
-            return response()->json(['password_recovered' => false, 'errors' => collect($validator->getMessageBag())->flatten()->toArray()], 403);
+        $user = $request->user_asked;
+
+        if(! $user->simpleToken($token)->belongs()){
+            return response()->json([
+                'password_recovered' => false,
+                'error' => 'Token incorrect'
+            ], 401);
         }
-        $user = config('auth.providers.users.model')::where('password_token', $token)->first();
-        if ($user == null) {
-            return response()->json(['password_recovered' => false, 'errors' => ['token' => trans('validation.exists', ['attribute' => 'token'])]], 403);
-        }
-        $user->password_token = null;
-        $user->password = bcrypt($request->get('password'));
-        $user->save();
-        $this->sendRecoverEmail($user);
+
+        $user->setNewPassword($request->get('password'))
+             ->forgotToken();
+
+        SendRecoveredPasswordJob::dispatch(
+            $user
+        );
         return response()->json(['password_recovered' => true, 'errors' => []], 200);
     }
 

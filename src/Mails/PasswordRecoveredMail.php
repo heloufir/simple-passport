@@ -7,7 +7,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-class RestPasswordTokenMail extends Mailable
+class PasswordRecoveredMail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -19,9 +19,9 @@ class RestPasswordTokenMail extends Mailable
     /**
      * Create a new message instance.
      *
-     * @param  $user
+     * @param $user
      */
-    public function __construct( $user)
+    public function __construct($user)
     {
         $this->user = $user;
     }
@@ -33,9 +33,9 @@ class RestPasswordTokenMail extends Mailable
      */
     public function build()
     {
-        return $this->view('simple-passport.forgot-password')
-                    ->with(['user' => $this->user])
-                    ->from(config('simple-passport.mail_from'), config('simple-passport.mail_from_name'))
-                    ->subject(trans('simple-passport::forgot-password.mail_subject'));
+        return $this->view('simple-passport.recover-password')
+                ->with(['user' => $this->user])
+                ->from(config('simple-passport.mail_from'), config('simple-passport.mail_from_name'))
+                ->subject(trans('simple-passport::recover-password.mail_subject'));
     }
 }
