@@ -20,15 +20,10 @@ class PasswordController extends Controller
     public function forgot(ResetPasswordRequest $request): JsonResponse
     {
         $user = $this->getRelatedUser($request);
-
         $user->simpleToken()->generateResetPassword();
-
-        // Can be queued
-
         $this->dispatchJobWithDelay(
             SendResetPasswordTokenJob::class, $user
         );
-
         return response()->json(['mail_sent' => true, 'errors' => []], 200);
     }
 
@@ -41,24 +36,18 @@ class PasswordController extends Controller
      */
     public function recover(RecoverPasswordRequest $request, string $token): JsonResponse
     {
-        $user = $this->getRelatedUser($request);;
-
+        $user = $this->getRelatedUser($request);
         if(! $user->simpleToken($token)->belongs()){
             return response()->json([
                 'password_recovered' => false,
                 'error' => 'Token incorrect'
             ], 401);
         }
-
         $user->setNewPassword($request->get('password'))
              ->forgotToken();
-
-        // Can be queued
-
         $this->dispatchJobWithDelay(
             SendRecoveredPasswordJob::class, $user
         );
-
         return response()->json(['password_recovered' => true, 'errors' => []], 200);
     }
 

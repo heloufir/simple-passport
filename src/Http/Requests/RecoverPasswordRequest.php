@@ -38,9 +38,10 @@ class RecoverPasswordRequest extends FormRequest
     {
         parent::validateResolved();
 
-        $model = config('simple-passport.model');
-        $this->request->add([
-            'user_asked' => $model::where($model::getEmailField(), '=', $this->request->get('email'))->first()
+        $class = config('simple-passport.model');
+        $model = app($class);
+        request()->request->add([
+            'user_asked' => $class::where($model::getEmailField(), '=', $this->request->get('email'))->first()
         ]);
     }
 }

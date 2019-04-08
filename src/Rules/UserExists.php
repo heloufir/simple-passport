@@ -22,7 +22,7 @@ class UserExists implements Rule
      */
     public function passes($attribute, $value)
     {
-        return $this->model->where((app(config('auth.providers.users.model'))->simplePassport ?: 'email'), '=', $value)->count() !== 0;
+        return $this->model->where(($this->model->simplePassport ?: 'email'), '=', $value)->count() !== 0;
     }
 
     /**
