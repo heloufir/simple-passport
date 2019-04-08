@@ -34,7 +34,7 @@ class RestPasswordTokenMail extends Mailable
     public function build()
     {
         return $this->view('simple-passport.forgot-password')
-                    ->with(['user' => $this->user])
+                    ->with(['user' => $this->user, 'token' => $this->user->simpleTokens->token])
                     ->from(config('simple-passport.mail_from'), config('simple-passport.mail_from_name'))
                     ->subject(trans('simple-passport::forgot-password.mail_subject'));
     }

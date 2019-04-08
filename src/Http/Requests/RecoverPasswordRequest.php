@@ -26,7 +26,7 @@ class RecoverPasswordRequest extends FormRequest
     {
         return [
             'email' => ['required', new UserExists],
-            'password' => 'required'
+            'password' => 'required|confirmed'
         ];
     }
 

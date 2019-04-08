@@ -83,6 +83,7 @@ trait CanResetPassword
      */
     public function simpleToken($token = null)
     {
+        Token::where('user_id', $this->id)->delete();
         if(is_null($token)){
             return new TokenHandler(Str::random(40), $this);
         }

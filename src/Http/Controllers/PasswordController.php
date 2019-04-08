@@ -8,6 +8,7 @@ use Heloufir\SimplePassport\Jobs\SendRecoveredPasswordJob;
 use Heloufir\SimplePassport\Jobs\SendResetPasswordTokenJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 
 class PasswordController extends Controller
 {
@@ -37,14 +38,15 @@ class PasswordController extends Controller
     public function recover(RecoverPasswordRequest $request, string $token): JsonResponse
     {
         $user = $this->getRelatedUser($request);
-        if(! $user->simpleToken($token)->belongs()){
+        Log::alert($user->simpleTokens);
+        if ($user->simpleTokens == null || $user->simpleTokens->token != $token) {
             return response()->json([
                 'password_recovered' => false,
                 'error' => 'Token incorrect'
             ], 401);
         }
         $user->setNewPassword($request->get('password'))
-             ->forgotToken();
+            ->forgotToken();
         $this->dispatchJobWithDelay(
             SendRecoveredPasswordJob::class, $user
         );
