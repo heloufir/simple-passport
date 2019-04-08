@@ -5,7 +5,7 @@ namespace Heloufir\SimplePassport\Http\Requests;
 use Heloufir\SimplePassport\Rules\UserExists;
 use Illuminate\Foundation\Http\FormRequest;
 
-class ResetPasswordRequest extends FormRequest
+class RecoverPasswordRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,7 +25,8 @@ class ResetPasswordRequest extends FormRequest
     public function rules()
     {
         return [
-            'email' => ['required', new UserExists]
+            'email' => ['required', new UserExists],
+            'password' => 'required'
         ];
     }
 

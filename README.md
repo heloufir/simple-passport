@@ -1,9 +1,10 @@
 # Installation
+1/ Install Laravel passport official package, explained in the documentation [here](https://laravel.com/docs/5.8/passport#installation)
+    Then install the simple-passport package via composer
 
     composer require heloufir/simple-passport
 
 # Configuration
-
 1/ After installing the package, you need to publish it, by running the command:
 
 To do it, simply execute the following command 
@@ -34,65 +35,106 @@ Execute the migration command:
 
 This will show you the following message:
 
-    Migration table created successfully.
-    Migrating: 2014_10_12_000000_create_users_table
-    Migrated:  2014_10_12_000000_create_users_table
-    Migrating: 2014_10_12_100000_create_password_resets_table
-    Migrated:  2014_10_12_100000_create_password_resets_table
-    Migrating: 2016_06_01_000001_create_oauth_auth_codes_table
-    Migrated:  2016_06_01_000001_create_oauth_auth_codes_table
-    Migrating: 2016_06_01_000002_create_oauth_access_tokens_table
-    Migrated:  2016_06_01_000002_create_oauth_access_tokens_table
-    Migrating: 2016_06_01_000003_create_oauth_refresh_tokens_table
-    Migrated:  2016_06_01_000003_create_oauth_refresh_tokens_table
-    Migrating: 2016_06_01_000004_create_oauth_clients_table
-    Migrated:  2016_06_01_000004_create_oauth_clients_table
-    Migrating: 2016_06_01_000005_create_oauth_personal_access_clients_table
-    Migrated:  2016_06_01_000005_create_oauth_personal_access_clients_table
-    Migrating: 2019_02_21_094018_add_password_token_to_users_table
-    Migrated:  2019_02_21_094018_add_password_token_to_users_table
+    Migrating: 2019_04_06_105400_create_simple_tokens_table
+    Migrated:  2019_04_06_105400_create_simple_tokens_table
 
-
-**Of course, you can see less/more migrations if necessary**.
-
-Next, you should run the `passport:install` command. This command will create the encryption keys needed to generate secure access tokens. In addition, the command will create "personal access" and "password grant" clients which will be used to generate access tokens:
-
-    php artisan passport:install
-
-After running this command, add the **Laravel\Passport\HasApiTokens** trait to your **YOUR_NAMESPACE\User** model. This trait will provide a few helper methods to your model which allow you to inspect the authenticated user's token and scopes:
+After running this command, add the **Heloufir\SimplePassport\Helpers\CanResetPassword** trait to your **YOUR_NAMESPACE\User** model. This trait will provide a few helper methods:
 
 ```php
 <?php
 
 namespace App;
-    
+  
+use Heloufir\SimplePassport\Helpers\CanResetPassword;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
     
 class User extends Authenticatable
 {
-    use HasApiTokens, Notifiable;
+    use HasApiTokens, Notifiable, CanResetPassword;
 }
 ```
 
-> Don't forget to update the guards in your **auth.php** configuration file for the `api` to **passport**
+> You can override two methods **getEmailField** and  **getPasswordField** for providing the names of the fields
 
+3/ A configuration file **config/simple-passport.php** will be published. its containing the information such as the user model and more things.
 ```php
-'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
-        ],
+return [
 
-        'api' => [
-            'driver' => 'passport', // <- Here
-            'provider' => 'users',
-        ],
-    ],
+    /*
+    |--------------------------------------------------------------------------
+    | Recover url
+    |--------------------------------------------------------------------------
+    |
+    | This value is the recover password url, where the user will be redirected
+    | after he clicked on the forgot password email button.
+    | >> To customize this value please set a new variable into the application
+    |    .env file with the following name: "SP_RECOVER_URL"
+    |
+    */
+    'recover_url' => env('SP_RECOVER_URL', 'http://localhost:4200/auth/recover/'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mail sender
+    |--------------------------------------------------------------------------
+    |
+    | This value is the address of the sender, which be displayed in the mail
+    | sent to the user after he request to recover his password or after his
+    | password is recovered
+    | >> To customize this value please set a new variable into the application
+    |    .env file with the following name: "SP_MAIL_FROM"
+    |
+    */
+    'mail_from' => env('SP_MAIL_FROM', 'noreply@application.com'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Recover url
+    |--------------------------------------------------------------------------
+    |
+    | This value is the name of the send, which be displayed in the mail
+    | sent to the user after he request to recover his password or after his
+    | password is recovered
+    | >> To customize this value please set a new variable into the application
+    |    .env file with the following name: "SP_MAIL_FROM_NAME"
+    |
+    */
+    'mail_from_name' => env('SP_MAIL_FROM_NAME', 'Application'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | model
+    |--------------------------------------------------------------------------
+    |
+    | The model that can use simple-passport features
+    |
+    */
+
+    'model' => \App\User::class,
+
+    /*
+    |--------------------------------------------------------------------------
+    | after_seconds
+    |--------------------------------------------------------------------------
+    |
+    | How many seconds before dispatch the jobs to send mails
+    |
+    */
+
+    'after_seconds' => 10,
+];
+
 ```
 
 
 It's done for the **laravel/passport** configuration, the rest of the configuration is done in the **heloufir/simple-passport** side.
 
 > So from here you are ready to use **laravel/passport** and **heloufir/simple-passport** packages.
+
+# Usage
+## Generate token
+1/ You can generate a token for an existing user via a POST HTTP request to http://localhost/oauth/forgot-password containing an **email** field.
+
+2/ You can recover the password for an existing user via a PUT HTTP request to http://localhost/oauth/recover-password/some-random-token containing an **email** and new **password** field.
