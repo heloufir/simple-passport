@@ -2,96 +2,89 @@
 
 namespace Heloufir\SimplePassport\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use Heloufir\SimplePassport\Http\Requests\RecoverPasswordRequest;
 use Heloufir\SimplePassport\Http\Requests\ResetPasswordRequest;
+use Heloufir\SimplePassport\Jobs\SendRecoveredPasswordJob;
+use Heloufir\SimplePassport\Jobs\SendResetPasswordTokenJob;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
+use Illuminate\Routing\Controller;
 
 class PasswordController extends Controller
 {
-
     /**
      * Forgot password method
      *
      * @param ResetPasswordRequest $request
-     *      The request object, containing the user's form data
-     *
      * @return JsonResponse
-     *
-     * @author EL OUFIR Hatim <eloufirhatim@gmail.com>
      */
     public function forgot(ResetPasswordRequest $request): JsonResponse
     {
-        $field = app(config('auth.providers.users.model'))->simplePassport ?: 'email';
-        $user = config('auth.providers.users.model')::where($field, $request->get($field))->first();
-        $user->password_token = Str::random(100);
-        $user->save();
-        $this->sendForgotEmail($user);
+        $user = $this->getRelatedUser($request);
+
+        $user->simpleToken()->generateResetPassword();
+
+        // Can be queued
+
+        $this->dispatchJobWithDelay(
+            SendResetPasswordTokenJob::class, $user
+        );
+
         return response()->json(['mail_sent' => true, 'errors' => []], 200);
     }
 
     /**
      * Recover the password
      *
-     * @param Request $request
+     * @param RecoverPasswordRequest $request
      * @param string $token
      * @return JsonResponse
      */
-    public function recover(Request $request, string $token): JsonResponse
+    public function recover(RecoverPasswordRequest $request, string $token): JsonResponse
     {
-        $rules = [
-            'password' => 'required|confirmed|min:6'
-        ];
-        $validator = Validator::make($request->all(), $rules);
-        if ($validator->fails()) {
-            return response()->json(['password_recovered' => false, 'errors' => collect($validator->getMessageBag())->flatten()->toArray()], 403);
+        $user = $this->getRelatedUser($request);;
+
+        if(! $user->simpleToken($token)->belongs()){
+            return response()->json([
+                'password_recovered' => false,
+                'error' => 'Token incorrect'
+            ], 401);
         }
-        $user = config('auth.providers.users.model')::where('password_token', $token)->first();
-        if ($user == null) {
-            return response()->json(['password_recovered' => false, 'errors' => ['token' => trans('validation.exists', ['attribute' => 'token'])]], 403);
-        }
-        $user->password_token = null;
-        $user->password = bcrypt($request->get('password'));
-        $user->save();
-        $this->sendRecoverEmail($user);
+
+        $user->setNewPassword($request->get('password'))
+             ->forgotToken();
+
+        // Can be queued
+
+        $this->dispatchJobWithDelay(
+            SendRecoveredPasswordJob::class, $user
+        );
+
         return response()->json(['password_recovered' => true, 'errors' => []], 200);
     }
 
+
     /**
-     * Send the forgotten password email to the user
+     * Get the related user
      *
-     * @param object $user
-     *      The User model object
-     *
-     * @author EL OUFIR Hatim <eloufirhatim@gmail.com>
+     * @param $request
+     * @return mixed
      */
-    private function sendForgotEmail($user)
+    protected function getRelatedUser($request)
     {
-        Mail::send('simple-passport.forgot-password', ['user' => $user], function ($mail) use ($user) {
-            $mail->from(config('simple-passport.mail_from'), config('simple-passport.mail_from_name'));
-            $mail->to($user->email);
-            $mail->subject(trans('simple-passport::forgot-password.mail_subject'));
-        });
+        return $request->user_asked;
     }
 
     /**
-     * Send the recovered password email to the user
-     *
-     * @param object $user
-     *      The User model object
-     *
-     * @author EL OUFIR Hatim <eloufirhatim@gmail.com>
+     * @param $class
+     * @param $user
+     * @return mixed
      */
-    private function sendRecoverEmail($user)
+    protected function dispatchJobWithDelay($class, $user)
     {
-        Mail::send('simple-passport.recover-password', ['user' => $user], function ($mail) use ($user) {
-            $mail->from(config('simple-passport.mail_from'), config('simple-passport.mail_from_name'));
-            $mail->to($user->email);
-            $mail->subject(trans('simple-passport::recover-password.mail_subject'));
-        });
+        return $class::dispatch(
+            $user
+        )->delay(
+            now()->addSecond(config('simple-passport.after_seconds'))
+        );
     }
-
 }
