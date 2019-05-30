@@ -1,3 +1,6 @@
+<h3>Due to a time constraint, unfortunately this repository is no longer maintained.</h3>
+<br/>
+
 # Installation
 1/ Install Laravel passport official package, explained in the documentation [here](https://laravel.com/docs/5.8/passport#installation)
     Then install the simple-passport package via composer
